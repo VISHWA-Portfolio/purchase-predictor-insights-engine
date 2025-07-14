@@ -1,190 +1,291 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Sparkles, Zap, Shield, Rocket } from "lucide-react";
-import heroImage from "@/assets/hero-image.jpg";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Brain, TrendingUp, Users, Target, BarChart3, Activity } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
+  const [formData, setFormData] = useState({
+    age: "",
+    gender: "",
+    education: "",
+    review: ""
+  });
+  const [prediction, setPrediction] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Mock model metrics (in real app, these would come from your trained model)
+  const modelMetrics = {
+    accuracy: 0.84,
+    f1Score: 0.82,
+    totalSamples: 1000,
+    correctPredictions: 840
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handlePredict = async () => {
+    if (!formData.age || !formData.gender || !formData.education || !formData.review) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all fields to make a prediction.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    // Simulate ML prediction (in real app, this would call your trained model)
+    setTimeout(() => {
+      // Mock prediction logic based on form data
+      const ageScore = parseInt(formData.age) > 30 ? 0.3 : 0.1;
+      const genderScore = formData.gender === "Female" ? 0.2 : 0.15;
+      const educationScore = formData.education === "Graduate" ? 0.3 : formData.education === "Bachelor" ? 0.2 : 0.1;
+      const reviewScore = parseInt(formData.review) >= 4 ? 0.4 : parseInt(formData.review) >= 3 ? 0.2 : 0.1;
+      
+      const totalScore = ageScore + genderScore + educationScore + reviewScore;
+      const willPurchase = totalScore > 0.5 ? 1 : 0;
+      
+      setPrediction(willPurchase);
+      setIsLoading(false);
+      
+      toast({
+        title: "Prediction Complete!",
+        description: `Customer is ${willPurchase ? "likely" : "unlikely"} to make a purchase.`,
+      });
+    }, 1500);
+  };
+
+  const resetForm = () => {
+    setFormData({ age: "", gender: "", education: "", review: "" });
+    setPrediction(null);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-hero">
-      {/* Navigation */}
-      <nav className="container mx-auto px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="h-8 w-8 text-primary" />
-            <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              ModernWeb
-            </span>
+      {/* Header */}
+      <header className="container mx-auto px-6 py-8 text-center">
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          <Brain className="h-12 w-12 text-primary animate-float" />
+          <h1 className="text-4xl md:text-6xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+            Purchase Predictor
+          </h1>
+        </div>
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Advanced machine learning model to predict customer purchase behavior based on demographics and reviews
+        </p>
+      </header>
+
+      <div className="container mx-auto px-6 pb-12">
+        <div className="grid lg:grid-cols-3 gap-8">
+          
+          {/* Model Metrics */}
+          <div className="lg:col-span-1">
+            <Card className="animate-fade-in">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  <span>Model Performance</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Accuracy</span>
+                  <Badge variant="secondary" className="bg-gradient-primary text-primary-foreground">
+                    {(modelMetrics.accuracy * 100).toFixed(1)}%
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">F1 Score</span>
+                  <Badge variant="secondary" className="bg-gradient-accent text-accent-foreground">
+                    {modelMetrics.f1Score.toFixed(2)}
+                  </Badge>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Training Samples</span>
+                  <span className="font-semibold">{modelMetrics.totalSamples.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Correct Predictions</span>
+                  <span className="font-semibold text-primary">{modelMetrics.correctPredictions}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Algorithm Details */}
+            <Card className="mt-6 animate-scale-in">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="h-5 w-5 text-accent" />
+                  <span>Algorithm Details</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Model Type</span>
+                    <span className="font-medium">Logistic Regression</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Features</span>
+                    <span className="font-medium">4 (Age, Gender, Education, Review)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preprocessing</span>
+                    <span className="font-medium">Label Encoding</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Scaling</span>
+                    <span className="font-medium">StandardScaler</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-          <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
-              Features
-            </a>
-            <a href="#about" className="text-muted-foreground hover:text-foreground transition-colors">
-              About
-            </a>
-            <a href="#contact" className="text-muted-foreground hover:text-foreground transition-colors">
-              Contact
-            </a>
-            <Button variant="hero" size="sm">
-              Get Started
-            </Button>
+
+          {/* Prediction Form */}
+          <div className="lg:col-span-2">
+            <Card className="animate-fade-in">
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  <span>Customer Purchase Prediction</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  
+                  {/* Age Input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Customer Age</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      placeholder="Enter age (18-80)"
+                      value={formData.age}
+                      onChange={(e) => handleInputChange('age', e.target.value)}
+                      min="18"
+                      max="80"
+                    />
+                  </div>
+
+                  {/* Gender Select */}
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Male">Male</SelectItem>
+                        <SelectItem value="Female">Female</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Education Select */}
+                  <div className="space-y-2">
+                    <Label htmlFor="education">Education Level</Label>
+                    <Select value={formData.education} onValueChange={(value) => handleInputChange('education', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select education level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="High School">High School</SelectItem>
+                        <SelectItem value="Bachelor">Bachelor's Degree</SelectItem>
+                        <SelectItem value="Graduate">Graduate Degree</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Review Score */}
+                  <div className="space-y-2">
+                    <Label htmlFor="review">Review Score (1-5)</Label>
+                    <Select value={formData.review} onValueChange={(value) => handleInputChange('review', value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select review score" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 - Very Poor</SelectItem>
+                        <SelectItem value="2">2 - Poor</SelectItem>
+                        <SelectItem value="3">3 - Average</SelectItem>
+                        <SelectItem value="4">4 - Good</SelectItem>
+                        <SelectItem value="5">5 - Excellent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-4 pt-6">
+                  <Button 
+                    onClick={handlePredict} 
+                    disabled={isLoading}
+                    variant="hero" 
+                    size="lg" 
+                    className="flex-1"
+                  >
+                    {isLoading ? (
+                      <>
+                        <Activity className="mr-2 h-4 w-4 animate-spin" />
+                        Predicting...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="mr-2 h-4 w-4" />
+                        Predict Purchase
+                      </>
+                    )}
+                  </Button>
+                  <Button onClick={resetForm} variant="outline" size="lg">
+                    Reset Form
+                  </Button>
+                </div>
+
+                {/* Prediction Result */}
+                {prediction !== null && (
+                  <Card className="mt-6 animate-scale-in">
+                    <CardContent className="p-6 text-center">
+                      <div className={`inline-flex items-center space-x-2 px-6 py-3 rounded-full text-lg font-semibold ${
+                        prediction === 1 
+                          ? 'bg-gradient-primary text-primary-foreground shadow-glow' 
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {prediction === 1 ? (
+                          <>
+                            <TrendingUp className="h-5 w-5" />
+                            <span>Will Purchase</span>
+                          </>
+                        ) : (
+                          <>
+                            <Users className="h-5 w-5" />
+                            <span>Won't Purchase</span>
+                          </>
+                        )}
+                      </div>
+                      <p className="mt-4 text-muted-foreground">
+                        Based on the provided customer data, our model predicts this customer is{' '}
+                        <span className="font-semibold text-foreground">
+                          {prediction === 1 ? 'likely' : 'unlikely'}
+                        </span>{' '}
+                        to make a purchase.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
-      </nav>
-
-      {/* Hero Section */}
-      <section className="container mx-auto px-6 py-16 md:py-24">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="animate-fade-in">
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
-              Build Something{" "}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
-                Amazing
-              </span>{" "}
-              Today
-            </h1>
-            <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
-              Create beautiful, responsive websites with modern design principles. 
-              Our platform combines cutting-edge technology with intuitive design 
-              to help you bring your vision to life.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" size="lg" className="group">
-                Start Building
-                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-              <Button variant="outline" size="lg">
-                Learn More
-              </Button>
-            </div>
-          </div>
-          <div className="animate-scale-in">
-            <div className="relative">
-              <img
-                src={heroImage}
-                alt="Modern digital landscape"
-                className="w-full rounded-2xl shadow-elegant animate-float"
-              />
-              <div className="absolute inset-0 bg-gradient-primary opacity-20 rounded-2xl"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="container mx-auto px-6 py-16">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">
-            Powerful Features
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to create exceptional web experiences
-          </p>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-8">
-          <Card className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
-            <CardContent className="p-8 text-center">
-              <div className="bg-gradient-primary p-3 rounded-full w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                <Zap className="h-8 w-8 text-primary-foreground" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-4">Lightning Fast</h3>
-              <p className="text-muted-foreground">
-                Optimized performance with modern technologies for blazing fast load times.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
-            <CardContent className="p-8 text-center">
-              <div className="bg-gradient-accent p-3 rounded-full w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                <Shield className="h-8 w-8 text-accent-foreground" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-4">Secure & Reliable</h3>
-              <p className="text-muted-foreground">
-                Built with security best practices and reliable infrastructure.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="group hover:shadow-elegant transition-all duration-300 hover:-translate-y-2">
-            <CardContent className="p-8 text-center">
-              <div className="bg-gradient-primary p-3 rounded-full w-16 h-16 mx-auto mb-6 flex items-center justify-center">
-                <Rocket className="h-8 w-8 text-primary-foreground" />
-              </div>
-              <h3 className="text-2xl font-semibold mb-4">Easy to Use</h3>
-              <p className="text-muted-foreground">
-                Intuitive interface designed for developers and creators of all levels.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-6 py-16">
-        <Card className="bg-gradient-primary text-primary-foreground overflow-hidden relative">
-          <CardContent className="p-12 text-center relative z-10">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Get Started?
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Join thousands of creators building amazing experiences
-            </p>
-            <Button variant="secondary" size="lg" className="group">
-              Start Your Journey
-              <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </CardContent>
-          <div className="absolute inset-0 bg-black/10"></div>
-        </Card>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t bg-card">
-        <div className="container mx-auto px-6 py-12">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <Sparkles className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                  ModernWeb
-                </span>
-              </div>
-              <p className="text-muted-foreground">
-                Building the future of web development, one project at a time.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Product</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Templates</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Company</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Careers</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Status</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t mt-8 pt-8 text-center text-muted-foreground">
-            <p>&copy; 2024 ModernWeb. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };
